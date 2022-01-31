@@ -1,18 +1,20 @@
 N_WORKERS: 3
 download_specs:
   GEE_S2SR:
-    worker: GEE_WORKER
+    worker: GEE
     resolution: 10
     patch_size: 256
     start_date_str: 2019-05-01
     end_date_str: 2019-09-01
     collection_id: COPERNICUS/S2_SR
-    bands: [B4,B3,B2]
+    bands: [B1,B2,B3,B4,B5,B6,B7,B8,B8A,B9,B11,B12]
     credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
     cloud_coverage_filter: null
     sort_by: cloud_cover
     mosaic: false
-  basemap:
+    preview: S2
+  BASEMAP:
     worker: BASEMAP
     zoom_level: 16
     api_key_path: /home/lucas/oxsfg-steel/maps_api_key.txt
+    preview: BASEMAP

@@ -1,7 +1,12 @@
+import io
+
 import click
 import geopandas as gpd
+import pandas as pd
+import requests
 import yaml
 from joblib import Parallel, delayed
+from shapely import wkt
 from tqdm import tqdm
 
 from oxsfg.steel.utils import multi_worker_pt, tqdm_joblib
@@ -10,6 +15,51 @@ from oxsfg.steel.utils import multi_worker_pt, tqdm_joblib
 @click.group()
 def cli():
     pass
+
+
+@cli.command()
+@click.argument("version_str")
+@click.argument("git_username")
+@click.argument("git_token")
+@click.argument("outpath")
+@click.option("--driver", default="GPKG")
+def fetch_geodataframe_from_github(
+    version_str: str,
+    git_username: str,
+    git_token: str,
+    outpath: str,
+    driver: str,
+) -> int:
+    """
+    Command-line utility to build a local geopandas GeoDataFrame for a dataset version.
+
+    Args
+    ----
+        version_str: The version of the data to retrieve
+        git_username: Your github username
+        git_token: Your github access token
+        outpath: The savepath for the geodataframe
+        driver: The fiona driver to use (optional, default: 'GPKG')
+
+    Returns:
+        1
+    """
+
+    session = requests.Session()
+    session.auth = (git_username, git_token)
+
+    # read as a pandas dataframe, e.g. points dataframe
+    data_url = f"https://raw.githubusercontent.com/spatial-finance/oxsfg-asset-level-data/main/steel/{version_str}/steel-points.csv"
+    data_io = session.get(data_url).content
+    df = pd.read_csv(io.StringIO(data_io.decode("utf-8")))
+
+    # (optionally) cast to geodataframe
+    df["geometry"] = df["geometry"].apply(wkt.loads)
+    gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
+
+    gdf.to_file(outpath, driver=driver)
+
+    return 1
 
 
 @cli.command()
@@ -36,7 +86,8 @@ def make_pointcentre_dataset(
 
     # load the cfg and the gdf
     cfg = yaml.load(open(cfg_path), Loader=yaml.SafeLoader)
-    gdf = gpd.read_file(gdf_path).iloc[0:20]
+    gdf = gpd.read_file(gdf_path)
+    gdf = gdf.set_index("uid")
 
     N_WORKERS = cfg["N_WORKERS"]
 
