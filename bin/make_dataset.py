@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 from shapely import wkt
 from tqdm import tqdm
 
-from oxsfg.steel.utils import multi_worker_pt, tqdm_joblib
+from oxsfg.steel.utils import multi_worker_pt_multi, multi_worker_pt_single, tqdm_joblib
 
 
 @click.group()
@@ -94,13 +94,35 @@ def make_pointcentre_dataset(
     # build the dataset in parallel
     jobs = []
 
-    for idx, row in gdf.iterrows():
-        jobs.append(delayed(multi_worker_pt)(idx, row["geometry"], cfg, save_root))
+    if cfg["get_single"]:
 
-    with tqdm_joblib(
-        tqdm(desc=f"deploying GEE on gcp with {N_WORKERS}", total=len(gdf)),
-    ):
-        Parallel(n_jobs=N_WORKERS, verbose=0, prefer="threads")(jobs)
+        for idx, row in gdf.iterrows():
+            jobs.append(
+                delayed(multi_worker_pt_single)(idx, row["geometry"], cfg, save_root)
+            )
+
+        with tqdm_joblib(
+            tqdm(desc=f"deploying GEE on gcp with {N_WORKERS}", total=len(gdf)),
+        ):
+            Parallel(n_jobs=N_WORKERS, verbose=0, prefer="threads")(jobs)
+
+    else:
+        for idx, row in gdf.iloc[2:10].iterrows():
+            # get the distributed jobs
+
+            jobs = []
+            keyed_args = multi_worker_pt_single(idx, row["geometry"], cfg, save_root)
+            for _key, arg_list in keyed_args.items():
+                for args in arg_list:
+                    jobs.append(delayed(multi_worker_pt_multi)(idx, args, save_root))
+
+            with tqdm_joblib(
+                tqdm(
+                    desc=f"deploying GEE for {idx} on gcp with {N_WORKERS}",
+                    total=len(jobs),
+                ),
+            ):
+                Parallel(n_jobs=N_WORKERS, verbose=0, prefer="threads")(jobs)
 
     return 1
 

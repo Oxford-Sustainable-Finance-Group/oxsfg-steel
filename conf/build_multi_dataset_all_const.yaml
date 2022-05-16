@@ -1,0 +1,55 @@
+N_WORKERS: 2
+get_single: false
+download_specs:
+  GEE_L5:
+    worker: GEE
+    resolution: 30
+    patch_size: 86
+    start_date_str: 1980-01-01
+    end_date_str: 2022-05-01
+    collection_id: LANDSAT/LT05/C01/T1
+    bands: [B1,B2,B3,B4,B5,B6,B7]
+    credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
+    cloud_coverage_filter: 20
+    sort_by: CLOUD_COVER
+    mosaic: false
+    preview: null
+  GEE_L7:
+    worker: GEE
+    resolution: 15
+    patch_size: 170
+    start_date_str: 1980-01-01
+    end_date_str: 2022-05-01
+    collection_id: LANDSAT/LE07/C01/T1_RT_TOA
+    bands: [B1,B2,B3,B4,B5,B6_VCID_1,B7]
+    credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
+    cloud_coverage_filter: 20
+    sort_by: CLOUD_COVER
+    mosaic: false
+    preview: null
+  GEE_L8:
+    worker: GEE
+    resolution: 15
+    patch_size: 170
+    start_date_str: 1980-01-01
+    end_date_str: 2022-05-01
+    collection_id: LANDSAT/LC08/C01/T1_SR
+    bands: [B1,B2,B3,B4,B5,B6,B7,B10]
+    credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
+    cloud_coverage_filter: 20
+    sort_by: CLOUD_COVER
+    mosaic: false
+    preview: null
+  GEE_S2:
+    worker: GEE
+    resolution: 10
+    patch_size: 256
+    start_date_str: 1980-01-01
+    end_date_str: 2022-05-01
+    collection_id: COPERNICUS/S2_SR
+    bands: [B1,B2,B3,B4,B5,B6,B7,B8,B8A,B9,B11,B12]
+    credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
+    cloud_coverage_filter: 0.2
+    sort_by: CLOUD_COVERAGE_ASSESSMENT
+    mosaic: false
+    preview: null

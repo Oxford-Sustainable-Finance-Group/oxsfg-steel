@@ -16,6 +16,7 @@ from oxsfg.steel.utils.utils import get_utm_epsg
 
 def gee_worker(
     pt_wgs84: geometry.Point,
+    get_single: bool,
     resolution: int,
     patch_size: int,
     start_date_str: str,
@@ -53,8 +54,10 @@ def gee_worker(
     if sort_by is not None:
         assert sort_by in [
             "cloud_cover",
+            "CLOUD_COVER",
+            "CLOUD_COVERAGE_ASSESSMENT",
             "date",
-        ], "'sort_by' must be one of ['cloud_cover','date']."
+        ], "'sort_by' must be one of ['cloud_cover','CLOUD_COVER','CLOUD_COVERAGE_ASSESSMENT','date']."
 
     # parse the datetimes
     start_dt = to_datetime(start_date_str).to_pydatetime()
@@ -94,13 +97,11 @@ def gee_worker(
 
     # optionally filter them
     if cloud_coverage_filter is not None:
-        print("cloud covr", cloud_coverage_filter)
         image_metadata = [
             im
             for im in image_metadata
-            if im["properties"]["CLOUD_COVERAGE_ASSESSMENT"] < cloud_coverage_filter
+            if im["properties"][sort_by] < cloud_coverage_filter
         ]
-        print(image_metadata)
 
     # sort them
     if sort_by is not None:
@@ -108,39 +109,53 @@ def gee_worker(
             image_metadata = sorted(
                 image_metadata, key=lambda im: im["endTime"], reverse=True
             )  # reverse for most recent
-        elif sort_by == "cloud_cover":
+        elif "cloud" in sort_by.lower():
             image_metadata = sorted(
                 image_metadata,
-                key=lambda im: im["properties"]["CLOUD_COVERAGE_ASSESSMENT"],
+                key=lambda im: im["properties"][sort_by],
             )
 
     # optionally mosaic the patch
-    if mosaic:
-        # do mosaic and return
-        pass
 
-    else:
+    # get x_offset, y_offset, and crs from shape
+    x_off = int(aoi_utm.bounds[0])
+    y_off = int(aoi_utm.bounds[3])
+    crs_code = f"EPSG:{utm_epsg}"
 
-        if sort_by is not None:
-            image_name = image_metadata[0]["name"]
+    if get_single:
+        if mosaic:
+            # do mosaic and return
+            raise NotImplementedError
+
         else:
-            # no sort -> random
-            image_name = image_metadata[np.random.choice(len(image_metadata))]["name"]
 
-        # get x_offset, y_offset, and crs from shape
-        x_off = int(aoi_utm.bounds[0])
-        y_off = int(aoi_utm.bounds[3])
-        crs_code = f"EPSG:{utm_epsg}"
+            if sort_by is not None:
+                image_name = image_metadata[0]["name"]
 
-        return _get_GEE_arr(
-            session=session,
-            name=image_name,
-            bands=bands,
-            x_off=x_off,
-            y_off=y_off,
-            patch_size=patch_size,
-            crs_code=crs_code,
-        )
+            else:
+                # no sort -> random
+                image_name = image_metadata[np.random.choice(len(image_metadata))][
+                    "name"
+                ]
+
+            return _get_GEE_arr(
+                session=session,
+                name=image_name,
+                bands=bands,
+                x_off=x_off,
+                y_off=y_off,
+                patch_size=patch_size,
+                crs_code=crs_code,
+            )
+    else:
+        # return delayed
+
+        delayed_call_data = [
+            (session, im_data["name"], bands, x_off, y_off, patch_size, crs_code)
+            for im_data in image_metadata
+        ]
+
+        return delayed_call_data
 
 
 def _get_GEE_ids(
