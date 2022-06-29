@@ -107,7 +107,7 @@ def make_pointcentre_dataset(
             Parallel(n_jobs=N_WORKERS, verbose=0, prefer="threads")(jobs)
 
     else:
-        for idx, row in gdf.iloc[2:10].iterrows():
+        for idx, row in gdf.loc[~gdf["year"].isna()].iloc[200:].iterrows():
             # get the distributed jobs
 
             jobs = []
