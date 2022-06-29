@@ -93,7 +93,6 @@ def gee_worker(
 
     # get the ids
     image_metadata = _get_GEE_ids(session, start_dt, end_dt, collection_id, aoi_wgs)
-    # print (image_metadata[0])
 
     # optionally filter them
     if cloud_coverage_filter is not None:
@@ -142,6 +141,7 @@ def gee_worker(
                 session=session,
                 name=image_name,
                 bands=bands,
+                resolution=resolution,
                 x_off=x_off,
                 y_off=y_off,
                 patch_size=patch_size,
@@ -151,7 +151,16 @@ def gee_worker(
         # return delayed
 
         delayed_call_data = [
-            (session, im_data["name"], bands, x_off, y_off, patch_size, crs_code)
+            (
+                session,
+                im_data["name"],
+                bands,
+                resolution,
+                x_off,
+                y_off,
+                patch_size,
+                crs_code,
+            )
             for im_data in image_metadata
         ]
 
@@ -197,6 +206,7 @@ def _get_GEE_arr(
     session: AuthorizedSession,
     name: str,
     bands: List[str],
+    resolution: int,
     x_off: int,
     y_off: int,
     patch_size: int,
@@ -211,8 +221,8 @@ def _get_GEE_arr(
             "bandIds": bands,
             "grid": {
                 "affineTransform": {
-                    "scaleX": 10,
-                    "scaleY": -10,
+                    "scaleX": resolution,
+                    "scaleY": -1 * resolution,
                     "translateX": x_off,
                     "translateY": y_off,
                 },

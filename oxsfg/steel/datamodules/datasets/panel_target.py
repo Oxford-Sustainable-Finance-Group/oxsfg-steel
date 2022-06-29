@@ -20,6 +20,9 @@ class PanelTargetDataset(Dataset):
         target_column: str,
         data_keys: List[str],
         is_categorical: bool = False,
+        pretrain_norm: bool = False,
+        log_target: bool = False,
+        log_norm: Optional[float] = None,
         resize_dim: Optional[Dict[str, list]] = None,
         crop: Optional[dict] = None,
         zscore_path: Optional[str] = None,
@@ -41,6 +44,13 @@ class PanelTargetDataset(Dataset):
         self.target_column = target_column
         self.crop = crop
         self.resize_dim = resize_dim
+        self.pretrain_norm = pretrain_norm
+        self.pretrain_mat = {
+            "mean": np.array([0.485, 0.456, 0.406]),
+            "std": np.array([0.229, 0.224, 0.225]),
+        }
+        if log_target:
+            self.gdf[target_column] = np.log(self.gdf[target_column]) / log_norm
 
         self.gdf = self.gdf.loc[~self.gdf[target_column].isna()]
         self.indices = self.gdf.index.values.tolist()
@@ -130,7 +140,13 @@ class PanelTargetDataset(Dataset):
 
         X = self.load_item(self.indices[index])
 
-        if self.zscore_data is not None:
+        if self.pretrain_norm:
+            for kk in self.data_keys:
+                X[kk] = (X[kk] / 255 - self.pretrain_mat["mean"]) / (
+                    self.pretrain_mat["std"]
+                )
+
+        elif self.zscore_data is not None:
             for kk in self.data_keys:
                 X[kk] = (X[kk] - self.zscore_data[kk]["mean"]) / self.zscore_data[kk][
                     "std"
@@ -146,7 +162,7 @@ class PanelTargetDataset(Dataset):
             np.array(self.gdf.loc[self.indices[index], self.target_column])
         ).float()
 
-        return X, Y
+        return index, X, Y
 
     def __len__(self):
         return len(self.gdf)

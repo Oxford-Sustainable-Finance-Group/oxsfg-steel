@@ -19,10 +19,13 @@ class PanelTargetDataModule(pl.LightningDataModule):
             "zscore_path",
             "crop",
             "resize_dim",
+            "pretrain_norm",
+            "log_target",
+            "log_norm",
         ]:
             setattr(self, key, dataset_parameters[key])
 
-        for key in ["batch_size", "val_split", "test_split"]:
+        for key in ["batch_size", "val_split", "test_split", "num_workers"]:
             setattr(self, key, training_parameters[key])
 
     def setup(self, stage: Optional[str] = None):
@@ -36,6 +39,9 @@ class PanelTargetDataModule(pl.LightningDataModule):
             zscore_path=self.zscore_path,
             crop=self.crop,
             resize_dim=self.resize_dim,
+            pretrain_norm=self.pretrain_norm,
+            log_target=self.log_target,
+            log_norm=self.log_norm,
         )
 
         val_size = int(len(ds_full) * self.val_split)
@@ -47,13 +53,19 @@ class PanelTargetDataModule(pl.LightningDataModule):
         )
 
     def train_dataloader(self):
-        return DataLoader(self.ds_train, batch_size=self.batch_size)
+        return DataLoader(
+            self.ds_train, batch_size=self.batch_size, num_workers=self.num_workers
+        )
 
     def val_dataloader(self):
-        return DataLoader(self.ds_val, batch_size=self.batch_size)
+        return DataLoader(
+            self.ds_val, batch_size=self.batch_size, num_workers=self.num_workers
+        )
 
     def test_dataloader(self):
-        return DataLoader(self.ds_test, batch_size=self.batch_size)
+        return DataLoader(
+            self.ds_test, batch_size=self.batch_size, num_workers=self.num_workers
+        )
 
     def teardown(self, stage: Optional[str] = None):
         # Used to clean-up when the run is finished
