@@ -2,9 +2,12 @@ dataset_parameters:
     gdf_path: /home/lucas/oxsfg-steel/data/steel-points.gpkg
     data_root: /home/lucas/oxsfg-steel/data/s2sr_all/data
     target_column: capacity
+    log_target: true
+    log_norm: 3.0
     data_keys: [BASEMAP]
     is_categorical: false
     zscore_path: /home/lucas/oxsfg-steel/data/s2sr_all/zscore.pkl
+    pretrain_norm: true
     crop:
         BASEMAP: [100,100,100,100]
     resize_dim:
@@ -14,6 +17,9 @@ training_parameters:
     batch_size: 8
     val_split: 0.15
     test_split: 0.15
+    num_workers: 8
+    max_epochs: 8
+    gpus: 1
 
 model_parameters:
     data_key: BASEMAP

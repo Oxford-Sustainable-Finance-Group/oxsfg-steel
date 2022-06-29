@@ -1,0 +1,16 @@
+N_WORKERS: 3
+get_single: false
+download_specs:
+  GEE_S2:
+    worker: GEE
+    resolution: 10
+    patch_size: 256
+    start_date_str: 1980-01-01
+    end_date_str: 2022-05-01
+    collection_id: COPERNICUS/S2_SR
+    bands: [B1,B2,B3,B4,B5,B6,B7,B8,B8A,B9,B11,B12]
+    credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
+    cloud_coverage_filter: 20.
+    sort_by: CLOUD_COVERAGE_ASSESSMENT
+    mosaic: false
+    preview: null

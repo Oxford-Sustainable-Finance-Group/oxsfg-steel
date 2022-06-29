@@ -1,4 +1,4 @@
-N_WORKERS: 2
+N_WORKERS: 3
 get_single: false
 download_specs:
   GEE_L5:
@@ -20,8 +20,8 @@ download_specs:
     patch_size: 170
     start_date_str: 1980-01-01
     end_date_str: 2022-05-01
-    collection_id: LANDSAT/LE07/C01/T1_RT_TOA
-    bands: [B1,B2,B3,B4,B5,B6_VCID_1,B7]
+    collection_id: LANDSAT/LE07/C01/T1_SR
+    bands: [B1,B2,B3,B4,B5,B6,B7]
     credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
     cloud_coverage_filter: 20
     sort_by: CLOUD_COVER
@@ -49,7 +49,7 @@ download_specs:
     collection_id: COPERNICUS/S2_SR
     bands: [B1,B2,B3,B4,B5,B6,B7,B8,B8A,B9,B11,B12]
     credentials: /home/lucas/oxsfg-steel/ox-sfg-ikea-lk.json
-    cloud_coverage_filter: 0.2
+    cloud_coverage_filter: 20.
     sort_by: CLOUD_COVERAGE_ASSESSMENT
     mosaic: false
     preview: null
