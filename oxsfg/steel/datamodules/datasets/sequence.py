@@ -10,6 +10,9 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning) 
+
 
 def softmax(x):
     return np.exp(x) / sum(np.exp(x))
@@ -63,6 +66,7 @@ class SequenceVizDataset(Dataset):
         self.resize_dim = resize_dim
 
         # get records
+        print ('RECORDS PATH', os.path.join(data_root, "*", "*.npz"))
         self.records = self.get_records(os.path.join(data_root, "*", "*.npz"))
 
         # filter for sequence len
@@ -103,6 +107,9 @@ class SequenceVizDataset(Dataset):
             {"site": site, "revisits": [{"f": f} for f in records if site in f]}
             for site in sites
         ]
+        records = [r for r in records if r['site'] in self.gdf.loc[~self.gdf[self.target_column].isna()].index]
+        
+        print ('TOTAL RECORDS',len(records))
 
         for record in records:
             for rec in record["revisits"]:
@@ -148,7 +155,14 @@ class SequenceVizDataset(Dataset):
 
         # get softmax probabilities
         for record in records:
-            nn_probs = softmax(np.array([rec["nn"] for rec in record["revisits"]]))
+            nn_probs = softmax(np.nan_to_num(np.log10(np.array([rec["nn"] for rec in record["revisits"]])+1)))
+            
+            if np.any(np.isnan(nn_probs)):
+                for ii_r,r in enumerate(record["revisits"]):
+                    print (nn_probs[ii_r], r)
+                    
+                exit()
+            
             for ii_r, rec in enumerate(record["revisits"]):
                 rec["prob"] = nn_probs[ii_r]
 
@@ -172,6 +186,10 @@ class SequenceVizDataset(Dataset):
 
         # get records for chosen index
         site_records = self.records[index]
+        
+        if np.any(np.isnan([r["prob"] for r in site_records["revisits"]])):
+            print ([r for r in site_records["revisits"] if np.isnan(r['prob'])])
+            raise ValueError("porb is nan")
 
         # randomly choose indices
         chosen_idx = sorted(
@@ -197,6 +215,7 @@ class SequenceVizDataset(Dataset):
             arrs.append(arr)
 
         X = np.stack(arrs)
+        X = np.transpose(X, (0,3,1,2))
 
         # do Y
         actual_age = self.gdf.loc[site_records["site"], self.target_column]
