@@ -1,8 +1,6 @@
 # oxsfg-steel
 A repo for localisation and feature extraction of steel facilities in remote sensing imagery.
 
-5any@wa2021
-
 ## Installation
 
 ## Developer Install
