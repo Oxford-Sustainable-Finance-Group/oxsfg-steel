@@ -37,8 +37,8 @@ Call the script like so:
 ### Run ML Experiments
 
 This repository uses [Sacred](https://sacred.readthedocs.io/en/stable/experiment.html) to configure and run ML experiments. 
-Experiment default configurations can be found and set in [conf/] and artefacts can be found in [experiments/sacred/].
-The path to the experiment file can be set in [oxsfg/steel/experiment.py] or can be called via the command line like:
+Experiment default configurations can be found and set in [conf/](conf/) and artefacts can be found in [experiments/sacred/](experiments/sacred/).
+The path to the experiment file can be set in [oxsfg/steel/experiment.py](oxsfg/steel/experiment.py) or can be called via the command line like:
 
     python runner.py with <path/to/your/conf.yaml>
 
@@ -50,7 +50,7 @@ Run a tensorboard server using:
     
 #### Panel Data Experiment e.g. Steel Plant Capacity
 
-Default configuration can be found at [conf/main.yaml].
+Default configuration can be found at [conf/main.yaml](conf/main.yaml).
 Parameters are:
 
     dataset_parameters:
@@ -82,7 +82,7 @@ Parameters are:
         
 #### Sequence Data Experiment e.g. Steel Plant Age
 
-Default configuration can be found at [conf/main_sequence.yaml].
+Default configuration can be found at [conf/main_sequence.yaml](conf/main_sequence.yaml).
 The parameters are:
 
     dataset_parameters:
