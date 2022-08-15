@@ -1,0 +1,19 @@
+dataset_parameters:
+    gdf_path: /home/lucas/oxsfg-steel/data/oxsfg_steel.gpkg
+    data_root: /home/lucas/oxsfg-steel/data/raw_sequences
+    target_column: year
+    pretrain_norm: true
+    sequence_len: 150
+    resize_dim: [256,256]
+
+training_parameters:
+    batch_size: 4
+    val_split: 0.2
+    test_split: 0.
+    num_workers: 6
+    max_epochs: 40
+    gpus: 1
+
+model_parameters:
+    input_size: 256
+    hidden_size: 12

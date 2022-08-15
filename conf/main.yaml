@@ -15,12 +15,11 @@ dataset_parameters:
 
 training_parameters:
     batch_size: 8
-    val_split: 0.15
-    test_split: 0.15
+    val_split: 0.2
+    test_split: 0.
     num_workers: 8
     max_epochs: 8
     gpus: 1
 
 model_parameters:
-    data_key: BASEMAP
     channels_last: true
