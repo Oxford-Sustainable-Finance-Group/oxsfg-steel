@@ -9,11 +9,12 @@ from oxsfg.steel.modules.models import GRUEncoder
 
 
 class GRUModule(pl.LightningModule):
-    def __init__(self, data_key: str, channels_last: bool, **kwargs):
+    def __init__(self, input_size: int, hidden_size: int, **kwargs):
         super().__init__()
 
-        self.model = GRUEncoder().float()
-        self.channels_last = channels_last
+        print (hidden_size, input_size)
+        print (type(hidden_size), type(input_size))
+        self.model = GRUEncoder(input_size, hidden_size).float()
         self.val_targets = {"y": [], "y_hat": []}
 
         print("-------- SUMMARY --------")
@@ -25,18 +26,25 @@ class GRUModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         # y = y.unsqueeze(dim=1)
-        y_hat = self(x)
+        y_hat = self(x).squeeze()
         # print (y)
         # print (y_hat)
-        loss = F.cross_entropy(y_hat, y)
+        #print ('SHAPES',y.shape, y_hat.shape)
+        loss = F.binary_cross_entropy(y_hat, y)
         self.log("Loss/train", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         # y = y.unsqueeze(dim=1)
-        y_hat = self(x).view(-1, 1)
-        loss = F.cross_entropy(y_hat, y)
+        # print ('YSHAPE',y.shape)
+        y_hat = self(x).squeeze()
+        # print ('YHAT_SHAPE',y_hat.shape)
+        
+        if len(y_hat.shape)!=2:
+            y_hat = y_hat.unsqueeze(0) # for batch_size=1 in val
+        #print ('SHAPES',y.shape, y_hat.shape)
+        loss = F.binary_cross_entropy(y_hat, y)
         self.log("Loss/val", loss)
 
         # print (y_hat.shape, y.shape)
@@ -57,7 +65,7 @@ class GRUModule(pl.LightningModule):
 
         return 1
 
-    def predict_step(self, batch):
+    def predict_step(self, batch, batch_idx, dataset_idx):
 
         x, y = batch
         y_hat = self(x)
