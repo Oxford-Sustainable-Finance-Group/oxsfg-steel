@@ -1,3 +1,3 @@
-from oxsfg.steel.main import ex
+from oxsfg.steel.main_sequence import ex
 
 r = ex.run_commandline()

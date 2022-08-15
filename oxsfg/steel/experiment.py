@@ -8,7 +8,7 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver, GoogleCloudStorageObserver
 
 DEBUG = False
-CONFIG_PATH = Path.cwd() / "conf" / "main.yaml"
+CONFIG_PATH = Path.cwd() / "conf" / "main_sequence.yaml"
 GCP_CREDENTIALS_PATH = Path.cwd() / "gcp_credentials.json"
 GCP_CONFIG_PATH = Path.cwd() / "gcp_config.yaml"
 
