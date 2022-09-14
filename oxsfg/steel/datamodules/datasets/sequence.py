@@ -1,5 +1,6 @@
 import glob
 import os
+import pickle
 from datetime import datetime
 from typing import Optional, Tuple
 
@@ -9,6 +10,9 @@ import pandas as pd
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
+
+from torchvision.models import resnet50, ResNet50_Weights
+
 
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
@@ -73,12 +77,20 @@ class SequenceVizDataset(Dataset):
         self.records = [
             r for r in self.records if len(r["revisits"]) >= self.sequence_len
         ]
+        pickle.dump(self.records,open('./tmp/records.pkl','wb'))
 
+        
+        weights = ResNet50_Weights.DEFAULT
+        
+        
         self.pretrain_norm = pretrain_norm
         self.pretrain_mat = {
             "mean": np.array([0.485, 0.456, 0.406]),
             "std": np.array([0.229, 0.224, 0.225]),
         }
+        
+        
+        self.pretrain_transforms = weights.transforms()
 
     def prep_vis_arr(self, r):
         """return the array ready for PIL"""
@@ -180,7 +192,8 @@ class SequenceVizDataset(Dataset):
 
             im = im.resize(self.resize_dim, Image.ANTIALIAS)
 
-        return np.array(im)
+        # return np.array(im)
+        return im
 
     def __getitem__(self, index):
 
@@ -208,14 +221,20 @@ class SequenceVizDataset(Dataset):
 
             # do some preprocessing for prtrained models
             if self.pretrain_norm:
-                arr = (arr / 255.0 - self.pretrain_mat["mean"]) / (
-                    self.pretrain_mat["std"]
-                )
+                # arr = (arr / 255.0 - self.pretrain_mat["mean"]) / (
+                #     self.pretrain_mat["std"]
+                # )
+                
+                arr = np.array(self.pretrain_transforms(arr))
+                
+            else:
+                arr = np.array(arr).transpose(2,0,1)
 
             arrs.append(arr)
 
         X = np.stack(arrs)
-        X = np.transpose(X, (0,3,1,2))
+        # print ('X shape', X.shape)
+        # X = np.transpose(X, (0,3,1,2))
 
         # do Y
         actual_age = self.gdf.loc[site_records["site"], self.target_column]
@@ -225,7 +244,7 @@ class SequenceVizDataset(Dataset):
             >= datetime(int(actual_age), 1, 1)
         ).astype(int)
 
-        return torch.from_numpy(X).float(), torch.from_numpy(Y).float()
+        return torch.from_numpy(X).float(), torch.from_numpy(Y).float(), np.array([(site_records["revisits"][idx]["dt"]-datetime(1970,1,1)).days for idx in chosen_idx])
 
     def __len__(self):
         return len(self.records)

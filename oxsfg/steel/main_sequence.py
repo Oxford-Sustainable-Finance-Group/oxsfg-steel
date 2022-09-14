@@ -5,7 +5,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from oxsfg.steel.datamodules import SequenceDataModule
 from oxsfg.steel.experiment import ex
-from oxsfg.steel.modules import GRUModule
+from oxsfg.steel.modules import SobelModule
 
 # from oxsfg.steel.metrics import plot_sample_errors
 
@@ -25,9 +25,16 @@ def main(
     train_dl = dm.train_dataloader()
     val_dl = dm.val_dataloader()
     test_dl = dm.test_dataloader()
+    
+    indices = {
+        'trn':train_dl.dataset.indices,
+        'val':val_dl.dataset.indices,
+        'test':test_dl.dataset.indices,
+    }
+    pickle.dump(indices, open('./tmp/indices.pkl','wb'))
 
     # build model
-    module = GRUModule(**model_parameters)
+    module = SobelModule(**model_parameters)
 
     name = module.model.encoder._get_name()
 
@@ -50,5 +57,7 @@ def main(
 
     pickle.dump(predictions, open("./tmp/predictions.pkl", "wb"))
     ex.add_artifact("./tmp/predictions.pkl")
+    ex.add_artifact("./tmp/records.pkl")
+    ex.add_artifact("./tmp/indices.pkl")
 
     return 1
